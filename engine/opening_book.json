@@ -1,0 +1,81 @@
+{
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR": [
+    {"move": "e2e4", "weight": 10},
+    {"move": "d2d4", "weight": 9},
+    {"move": "c2c4", "weight": 8},
+    {"move": "g1f3", "weight": 7},
+    {"move": "f2f4", "weight": 5},
+    {"move": "b2b3", "weight": 3},
+    {"move": "g2g3", "weight": 3}
+  ],
+
+  "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR": [
+    {"move": "e7e5", "weight": 10},
+    {"move": "c7c5", "weight": 9},
+    {"move": "e7e6", "weight": 8},
+    {"move": "c7c6", "weight": 8},
+    {"move": "g8f6", "weight": 7},
+    {"move": "d7d6", "weight": 6},
+    {"move": "d7d5", "weight": 6}
+  ],
+
+  "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR": [
+    {"move": "g1f3", "weight": 10},
+    {"move": "f1c4", "weight": 9},
+    {"move": "b1c3", "weight": 7},
+    {"move": "f2f4", "weight": 6}
+  ],
+
+  "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR": [
+    {"move": "g1f3", "weight": 10},
+    {"move": "d2d4", "weight": 9},
+    {"move": "c2c3", "weight": 6},
+    {"move": "b1c3", "weight": 6}
+  ],
+
+  "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR": [
+    {"move": "d2d4", "weight": 10},
+    {"move": "b1c3", "weight": 8},
+    {"move": "g1f3", "weight": 7}
+  ],
+
+  "rnbqkbnr/pp1ppppp/2p5/8/4P3/8/PPPP1PPP/RNBQKBNR": [
+    {"move": "d2d4", "weight": 10},
+    {"move": "b1c3", "weight": 8},
+    {"move": "g1f3", "weight": 7}
+  ],
+
+  "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR": [
+    {"move": "d7d5", "weight": 10},
+    {"move": "g8f6", "weight": 9},
+    {"move": "e7e6", "weight": 8},
+    {"move": "c7c5", "weight": 7},
+    {"move": "f7f5", "weight": 5}
+  ],
+
+  "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR": [
+    {"move": "c2c4", "weight": 10},
+    {"move": "g1f3", "weight": 8},
+    {"move": "e2e3", "weight": 7}
+  ],
+
+  "rnbqkb1r/pppppppp/5n2/8/3P4/8/PPP1PPPP/RNBQKBNR": [
+    {"move": "c2c4", "weight": 10},
+    {"move": "g1f3", "weight": 8},
+    {"move": "b1c3", "weight": 7}
+  ],
+
+  "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR": [
+    {"move": "e7e5", "weight": 9},
+    {"move": "g8f6", "weight": 9},
+    {"move": "c7c5", "weight": 7},
+    {"move": "e7e6", "weight": 7}
+  ],
+
+  "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R": [
+    {"move": "d7d5", "weight": 9},
+    {"move": "g8f6", "weight": 9},
+    {"move": "e7e5", "weight": 8},
+    {"move": "c7c5", "weight": 7}
+  ]
+}

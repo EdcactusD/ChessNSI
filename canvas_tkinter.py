@@ -1,70 +1,16 @@
 from tkinter import *
 from tkinter import ttk
 from PIL import Image, ImageTk
-from random import randint
 from chess import *
-import time
-from database import create_db, save_game
+import threading
 
-
-
-# global vars
 board_width = 1024
 board_height = 1024
+DELAY_MS = 800
 
 
 class Chess_UI:
-    """
-    Gère l'affichage du plateau d'échec et  gère la board de la librairie Chess
-    ...
-    Attributs 
-    ----------
-    root : Tk
-        L'interface Tkinter
-    board : Board
-        Le plateau d'échec
-    Joueur_Blanc : À definir
-        L'IA du Joueur Blanc
-    Jouer_Noir : À définir
-        L'IA du Joueur Noir
-    history_white & history_black : list
-        Donne la liste des coups joué par les blancs et les noirs
-
-    Méthodes
-    ----------
-    get_x_from_col(self, col) -> float
-        Donne la valeur des coordonnées pour les colonnes
-    get_y_from_row(self, row) -> float
-        Donne la valuer des coordonnées pour les lignes
-    display_piece(self, piece, col, row) -> None
-        Affiche les pièces sur l'échiquier et les stockes dans une liste
-    update_board() -> None
-        Met à jour le plateau et met en place le coup suivant
-    update_history_white(self, entry) -> None
-        Met à jour la liste des coups des blancs
-    update_history_black(self, entry) -> None
-        Met à jour la liste des coups des noirs
-    jouer(self) -> int
-        Permet aux joueurs de jouer leur coups chacun leur tour
-    """
-    def __init__(self, root:Tk, board:Board, J_Blanc, J_Noir):  
-        """
-        Construit le plateau, définit les images des pièces. 
-        Initialise l'historique des coups
-        Lance la plateau
-        ...
-        Attributs 
-        ----------
-        root : Tk
-            L'interface Tkinter
-        board : Board
-            Le plateau d'échec
-        Joueur_Blanc : À definir
-            L'IA du Joueur Blanc
-        Jouer_Noir : À définir
-            L'IA du Joueur Noir
-        """
-        #Définition des images pour les pièces
+    def __init__(self, root: Tk, board: Board, J_Blanc, J_Noir):
         self.img_dict = {
             'p': ImageTk.PhotoImage(Image.open('img/pion_noir.png').resize((100, 100))),
             'b': ImageTk.PhotoImage(Image.open('img/fou_noir.png').resize((100, 100))),
@@ -85,25 +31,20 @@ class Chess_UI:
         self.Joueur_Noir = J_Noir
         self.mainframe = ttk.Frame(self.root)
         self.mainframe.grid()
-        #Met les numéros et les lettres autour de l'échiquier 
-        for i in range(8):
-            label = Label(self.mainframe, text=chr(ord('A') + i), bg='white')
-            label.grid(row=0, column=i + 1, sticky=(S))
-            label = Label(self.mainframe, text=chr(ord('1') + i), bg='white')
-            label.grid(row=i + 1, column=0, sticky=(E))
 
-        #Affiche la liste déroulante de l'historique des mouvements
+        for i in range(8):
+            Label(self.mainframe, text=chr(ord('A') + i), bg='white').grid(row=0, column=i + 1, sticky=S)
+            Label(self.mainframe, text=chr(ord('1') + i), bg='white').grid(row=i + 1, column=0, sticky=E)
+
         self.history_white = []
         self.history_black = []
-        create_db()
-        self.game_saved = False
         self.history_white_var = StringVar(value=self.history_white)
         self.history_white_listbox = Listbox(self.mainframe, listvariable=self.history_white_var, bg="white", height=48)
-        self.history_white_listbox.grid(row=1, column=9, rowspan=8, sticky=(N))
+        self.history_white_listbox.grid(row=1, column=9, rowspan=8, sticky=N)
 
         self.history_black_var = StringVar(value=self.history_black)
         self.history_black_listbox = Listbox(self.mainframe, listvariable=self.history_black_var, bg="white", height=48)
-        self.history_black_listbox.grid(row=1, column=10, rowspan=8, sticky=(N))
+        self.history_black_listbox.grid(row=1, column=10, rowspan=8, sticky=N)
 
         self.canvas = Canvas(self.mainframe, bg="black", width=board_width, height=board_height)
         self.canvas.grid(row=1, column=1, columnspan=8, rowspan=8)
@@ -112,45 +53,30 @@ class Chess_UI:
         self.canvas.create_image(board_width / 2, board_height / 2, image=self.bg_photo)
 
         self.pieces_list = []
-        self.root.after(10, self.jouer)
-        #self.update_board() #Affichage sur l'interface
-        
+        self._thinking = False
+        self.update_board()
 
-    # takes a col number as parameter (between 0 and 7). Returns the matching x coordinate (center of the cell) in the canvas
-    def get_x_from_col(self, col:int) -> float:
-        """
-        prend un numéro de colonne comme paramètre (entre 0 et 7). 
-        Renvoie la coordonnée x correspondante (centre de la cellule) dans le canevas.
-        """
+    def get_x_from_col(self, col: int) -> float:
         if col < 0 or col > 7:
             raise ValueError(col)
         return board_width / 8 * col + board_width / 16
 
-    def get_y_from_row(self, row:int) -> float:
-        """
-        prend un numéro de ligne comme paramètre (entre 0 et 7). 
-        Renvoie la coordonnée x correspondante (centre de la cellule) dans le canevas.
-        """
+    def get_y_from_row(self, row: int) -> float:
         if row < 0 or row > 7:
             raise ValueError(row)
         return board_height / 8 * row + board_height / 16
-    
-    def display_piece(self, piece:Piece, col:int, row:int) -> None:
-        """
-        Affiche une pièce
-        """
-        self.pieces_list.append(self.canvas.create_image(self.get_x_from_col(col), self.get_y_from_row(row), image=self.img_dict[piece]))
+
+    def display_piece(self, piece, col: int, row: int) -> None:
+        self.pieces_list.append(
+            self.canvas.create_image(self.get_x_from_col(col), self.get_y_from_row(row), image=self.img_dict[piece])
+        )
 
     def update_board(self):
-        """
-        Mise à jour du plateau
-        """
-        #Suppression des pièces afin de les remettre à jour
         for piece in self.pieces_list:
-            self.canvas.delete(piece)   
-        row = 0
-        col = 0
-        #Replacement des pièces
+            self.canvas.delete(piece)
+        self.pieces_list.clear()
+
+        row = col = 0
         for piece in self.board.board_fen():
             if '1' <= piece <= '8':
                 col += ord(piece) - ord('0')
@@ -161,16 +87,8 @@ class Chess_UI:
                 self.display_piece(piece, col, row)
                 col += 1
 
-        #Mise à jour de l'historique
-        if self.board.turn == WHITE:
-            self.history_white_listbox.update()
-        else:
-            self.history_black_listbox.update()
-        #sleep(100)
-        
-        self.root.after(100, self.jouer)
-        
-        #self.jouer() #Tour suivant
+        # ✅ root.after au lieu de sleep() → Tkinter reste réactif
+        self.root.after(DELAY_MS, self.jouer)
 
     def update_history_white(self, entry):
         self.history_white.append(entry)
@@ -181,45 +99,49 @@ class Chess_UI:
         self.history_black_var.set(self.history_black)
 
     def jouer(self):
+        if self._thinking:
+            return
 
-        #Vérification de la victoire
         if self.board.is_game_over():
-        
-            result = self.board.result()
-
-            if not self.game_saved:
-                save_game(
-                    self.Joueur_Blanc.name,
-                    self.Joueur_Noir.name,
-                    result,
-                    self.history_white,
-                    self.history_black
-                )
-                self.game_saved = True
-
-            if result == "1-0":
+            res = self.board.result()
+            if res == "1-0":
                 res = "Les blancs ont gagné !"
-            elif result == "0-1":
-                res = "Les noir ont gagné !"
+            elif res == "0-1":
+                res = "Les noirs ont gagné !"
             else:
-                res = "Egalité !"
-
+                res = "Égalité !"
             self.canvas.create_text(
-                240, 240, text=f"Partie terminée : {res}",
+                board_width // 2, board_height // 2,
+                text=f"Partie terminée : {res}",
                 font=("Arial", 24, "bold"), fill="red"
             )
-            return 0
-        
+            return
 
-        #Tour d'un des joueurs
-        if self.board.turn == WHITE:
-            move = self.Joueur_Blanc.coup()
-            self.board.push_uci(move)
-            self.update_history_white(move)
-        else:
-            move = self.Joueur_Noir.coup()
-            self.board.push_uci(move)
-            self.update_history_black(move)
+        self._thinking = True
 
-        self.update_board() #Mise à jour de l'échiquier
+        def calculate():
+            try:
+                if self.board.turn == WHITE:
+                    san = self.Joueur_Blanc.coup()
+                else:
+                    san = self.Joueur_Noir.coup()
+                self.root.after(0, lambda: self._apply_move(san))
+            except Exception as e:
+                print(f"[UI] Erreur IA : {e}")
+                self._thinking = False
 
+        threading.Thread(target=calculate, daemon=True).start()
+
+    def _apply_move(self, san: str):
+        try:
+            move = self.board.parse_san(san)
+            if self.board.turn == WHITE:
+                self.update_history_white(f"{self.board.fullmove_number}. {san}")
+            else:
+                self.update_history_black(f"{self.board.fullmove_number}... {san}")
+            self.board.push(move)
+        except Exception as e:
+            print(f"[UI] Coup invalide '{san}' : {e}")
+        finally:
+            self._thinking = False
+            self.update_board()
