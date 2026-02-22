@@ -1,6 +1,6 @@
 import chess
 
-PIECE_VALUES = {
+VALEURS_PIECES = {
     chess.PAWN:   100,
     chess.KNIGHT: 320,
     chess.BISHOP: 330,
@@ -9,7 +9,7 @@ PIECE_VALUES = {
     chess.KING:   20000,
 }
 
-PAWN_TABLE = [
+TABLE_PION = [
      0,  0,  0,  0,  0,  0,  0,  0,
     50, 50, 50, 50, 50, 50, 50, 50,
     10, 10, 20, 30, 30, 20, 10, 10,
@@ -20,7 +20,7 @@ PAWN_TABLE = [
      0,  0,  0,  0,  0,  0,  0,  0,
 ]
 
-KNIGHT_TABLE = [
+TABLE_CAVALIER = [
     -50,-40,-30,-30,-30,-30,-40,-50,
     -40,-20,  0,  0,  0,  0,-20,-40,
     -30,  0, 10, 15, 15, 10,  0,-30,
@@ -31,7 +31,7 @@ KNIGHT_TABLE = [
     -50,-40,-30,-30,-30,-30,-40,-50,
 ]
 
-BISHOP_TABLE = [
+TABLE_FOU = [
     -20,-10,-10,-10,-10,-10,-10,-20,
     -10,  0,  0,  0,  0,  0,  0,-10,
     -10,  0,  5, 10, 10,  5,  0,-10,
@@ -42,7 +42,7 @@ BISHOP_TABLE = [
     -20,-10,-10,-10,-10,-10,-10,-20,
 ]
 
-ROOK_TABLE = [
+TABLE_TOUR = [
      0,  0,  0,  0,  0,  0,  0,  0,
      5, 10, 10, 10, 10, 10, 10,  5,
     -5,  0,  0,  0,  0,  0,  0, -5,
@@ -53,7 +53,7 @@ ROOK_TABLE = [
      0,  0,  0,  5,  5,  0,  0,  0,
 ]
 
-QUEEN_TABLE = [
+TABLE_REINE = [
     -20,-10,-10, -5, -5,-10,-10,-20,
     -10,  0,  0,  0,  0,  0,  0,-10,
     -10,  0,  5,  5,  5,  5,  0,-10,
@@ -64,7 +64,7 @@ QUEEN_TABLE = [
     -20,-10,-10, -5, -5,-10,-10,-20,
 ]
 
-KING_MIDDLE_TABLE = [
+TABLE_ROI_MILIEU = [
     -30,-40,-40,-50,-50,-40,-40,-30,
     -30,-40,-40,-50,-50,-40,-40,-30,
     -30,-40,-40,-50,-50,-40,-40,-30,
@@ -75,7 +75,7 @@ KING_MIDDLE_TABLE = [
      20, 30, 10,  0,  0, 10, 30, 20,
 ]
 
-KING_END_TABLE = [
+TABLE_ROI_FIN = [
     -50,-40,-30,-20,-20,-30,-40,-50,
     -30,-20,-10,  0,  0,-10,-20,-30,
     -30,-10, 20, 30, 30, 20,-10,-30,
@@ -86,48 +86,48 @@ KING_END_TABLE = [
     -50,-30,-30,-30,-30,-30,-30,-50,
 ]
 
-PIECE_TABLES = {
-    chess.PAWN:   PAWN_TABLE,
-    chess.KNIGHT: KNIGHT_TABLE,
-    chess.BISHOP: BISHOP_TABLE,
-    chess.ROOK:   ROOK_TABLE,
-    chess.QUEEN:  QUEEN_TABLE,
-    chess.KING:   KING_MIDDLE_TABLE,
+TABLES_PIECES = {
+    chess.PAWN:   TABLE_PION,
+    chess.KNIGHT: TABLE_CAVALIER,
+    chess.BISHOP: TABLE_FOU,
+    chess.ROOK:   TABLE_TOUR,
+    chess.QUEEN:  TABLE_REINE,
+    chess.KING:   TABLE_ROI_MILIEU,
 }
 
 
-def _is_endgame(board: chess.Board) -> bool:
-    queens = len(board.pieces(chess.QUEEN, chess.WHITE)) + len(board.pieces(chess.QUEEN, chess.BLACK))
-    rooks = len(board.pieces(chess.ROOK, chess.WHITE)) + len(board.pieces(chess.ROOK, chess.BLACK))
-    return queens == 0 or (queens == 2 and rooks <= 2)
+def _est_finale(board: chess.Board) -> bool:
+    reines = len(board.pieces(chess.QUEEN, chess.WHITE)) + len(board.pieces(chess.QUEEN, chess.BLACK))
+    tours = len(board.pieces(chess.ROOK, chess.WHITE)) + len(board.pieces(chess.ROOK, chess.BLACK))
+    return reines == 0 or (reines == 2 and tours <= 2)
 
 
-def _get_piece_table(piece_type: int, endgame: bool) -> list:
-    if piece_type == chess.KING and endgame:
-        return KING_END_TABLE
-    return PIECE_TABLES.get(piece_type, [0] * 64)
+def _obtenir_table_piece(type_piece: int, finale: bool) -> list:
+    if type_piece == chess.KING and finale:
+        return TABLE_ROI_FIN
+    return TABLES_PIECES.get(type_piece, [0] * 64)
 
 
-def evaluate(board: chess.Board) -> int:
+def evaluer(board: chess.Board) -> int:
     if board.is_checkmate():
         return -30000 if board.turn == chess.WHITE else 30000
     if board.is_stalemate() or board.is_insufficient_material():
         return 0
 
-    endgame = _is_endgame(board)
+    finale = _est_finale(board)
     score = 0
 
-    for piece_type in [chess.PAWN, chess.KNIGHT, chess.BISHOP, chess.ROOK, chess.QUEEN, chess.KING]:
-        table = _get_piece_table(piece_type, endgame)
-        base = PIECE_VALUES[piece_type]
-        for sq in board.pieces(piece_type, chess.WHITE):
-            row = 7 - (sq // 8)
-            col = sq % 8
-            score += base + table[row * 8 + col]
-        for sq in board.pieces(piece_type, chess.BLACK):
-            row = sq // 8
-            col = sq % 8
-            score -= base + table[row * 8 + col]
+    for type_piece in [chess.PAWN, chess.KNIGHT, chess.BISHOP, chess.ROOK, chess.QUEEN, chess.KING]:
+        table = _obtenir_table_piece(type_piece, finale)
+        base = VALEURS_PIECES[type_piece]
+        for sq in board.pieces(type_piece, chess.WHITE):
+            ligne = 7 - (sq // 8)
+            colonne = sq % 8
+            score += base + table[ligne * 8 + colonne]
+        for sq in board.pieces(type_piece, chess.BLACK):
+            ligne = sq // 8
+            colonne = sq % 8
+            score -= base + table[ligne * 8 + colonne]
 
     if board.turn == chess.BLACK:
         score = -score

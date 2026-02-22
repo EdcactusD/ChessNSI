@@ -3,48 +3,48 @@ import os
 import random
 import chess
 
-BOOK_FILE = os.path.join(os.path.dirname(__file__), "opening_book.json")
+FICHIER_LIVRE = os.path.join(os.path.dirname(__file__), "opening_book.json")
 
-_book_cache = None
+_cache_livre = None
 
 
-def load_book() -> dict:
-    global _book_cache
-    if _book_cache is not None:
-        return _book_cache
-    if os.path.exists(BOOK_FILE):
+def charger_livre() -> dict:
+    global _cache_livre
+    if _cache_livre is not None:
+        return _cache_livre
+    if os.path.exists(FICHIER_LIVRE):
         try:
-            with open(BOOK_FILE, "r") as f:
-                _book_cache = json.load(f)
+            with open(FICHIER_LIVRE, "r") as f:
+                _cache_livre = json.load(f)
         except (json.JSONDecodeError, IOError):
-            _book_cache = {}
+            _cache_livre = {}
     else:
-        _book_cache = {}
-    return _book_cache
+        _cache_livre = {}
+    return _cache_livre
 
 
-def get_opening_move(board: chess.Board):
-    book = load_book()
-    fen_key = board.board_fen()
-    entries = book.get(fen_key)
+def obtenir_coup_ouverture(board: chess.Board):
+    livre = charger_livre()
+    cle_fen = board.board_fen()
+    entrees = livre.get(cle_fen)
 
-    if not entries:
+    if not entrees:
         return None
 
     # Filtre les coups légaux uniquement
-    legal_entries = []
-    for entry in entries:
+    entrees_legales = []
+    for entree in entrees:
         try:
-            move = chess.Move.from_uci(entry["move"])
-            if move in board.legal_moves:
-                legal_entries.append((move, entry.get("weight", 1)))
+            coup = chess.Move.from_uci(entree["move"])
+            if coup in board.legal_moves:
+                entrees_legales.append((coup, entree.get("weight", 1)))
         except ValueError:
             continue
 
-    if not legal_entries:
+    if not entrees_legales:
         return None
 
     # Sélection pondérée (plus le weight est élevé, plus c'est joué)
-    moves, weights = zip(*legal_entries)
-    chosen = random.choices(moves, weights=weights, k=1)[0]
-    return chosen
+    coups, poids = zip(*entrees_legales)
+    choisi = random.choices(coups, weights=poids, k=1)[0]
+    return choisi

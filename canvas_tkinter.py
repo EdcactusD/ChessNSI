@@ -4,14 +4,14 @@ from PIL import Image, ImageTk
 from chess import *
 import threading
 
-board_width = 1024
-board_height = 1024
-DELAY_MS = 800
+largeur_plateau = 1024
+hauteur_plateau = 1024
+DELAI_MS = 800
 
 
-class Chess_UI:
+class InterfaceEchecs:
     def __init__(self, root: Tk, board: Board, J_Blanc, J_Noir):
-        self.img_dict = {
+        self.dict_images = {
             'p': ImageTk.PhotoImage(Image.open('img/pion_noir.png').resize((100, 100))),
             'b': ImageTk.PhotoImage(Image.open('img/fou_noir.png').resize((100, 100))),
             'q': ImageTk.PhotoImage(Image.open('img/reine_noire.png').resize((100, 100))),
@@ -27,79 +27,79 @@ class Chess_UI:
         }
         self.root = root
         self.board = board
-        self.Joueur_Blanc = J_Blanc
-        self.Joueur_Noir = J_Noir
-        self.mainframe = ttk.Frame(self.root)
-        self.mainframe.grid()
+        self.joueur_blanc = J_Blanc
+        self.joueur_noir = J_Noir
+        self.cadre_principal = ttk.Frame(self.root)
+        self.cadre_principal.grid()
 
         for i in range(8):
-            Label(self.mainframe, text=chr(ord('A') + i), bg='white').grid(row=0, column=i + 1, sticky=S)
-            Label(self.mainframe, text=chr(ord('1') + i), bg='white').grid(row=i + 1, column=0, sticky=E)
+            Label(self.cadre_principal, text=chr(ord('A') + i), bg='white').grid(row=0, column=i + 1, sticky=S)
+            Label(self.cadre_principal, text=chr(ord('1') + i), bg='white').grid(row=i + 1, column=0, sticky=E)
 
-        self.history_white = []
-        self.history_black = []
-        self.history_white_var = StringVar(value=self.history_white)
-        self.history_white_listbox = Listbox(self.mainframe, listvariable=self.history_white_var, bg="white", height=48)
-        self.history_white_listbox.grid(row=1, column=9, rowspan=8, sticky=N)
+        self.historique_blanc = []
+        self.historique_noir = []
+        self.var_historique_blanc = StringVar(value=self.historique_blanc)
+        self.listbox_historique_blanc = Listbox(self.cadre_principal, listvariable=self.var_historique_blanc, bg="white", height=48)
+        self.listbox_historique_blanc.grid(row=1, column=9, rowspan=8, sticky=N)
 
-        self.history_black_var = StringVar(value=self.history_black)
-        self.history_black_listbox = Listbox(self.mainframe, listvariable=self.history_black_var, bg="white", height=48)
-        self.history_black_listbox.grid(row=1, column=10, rowspan=8, sticky=N)
+        self.var_historique_noir = StringVar(value=self.historique_noir)
+        self.listbox_historique_noir = Listbox(self.cadre_principal, listvariable=self.var_historique_noir, bg="white", height=48)
+        self.listbox_historique_noir.grid(row=1, column=10, rowspan=8, sticky=N)
 
-        self.canvas = Canvas(self.mainframe, bg="black", width=board_width, height=board_height)
+        self.canvas = Canvas(self.cadre_principal, bg="black", width=largeur_plateau, height=hauteur_plateau)
         self.canvas.grid(row=1, column=1, columnspan=8, rowspan=8)
-        self.bg_img = Image.open('img/plateau.png')
-        self.bg_photo = ImageTk.PhotoImage(self.bg_img)
-        self.canvas.create_image(board_width / 2, board_height / 2, image=self.bg_photo)
+        self.img_fond = Image.open('img/plateau.png')
+        self.photo_fond = ImageTk.PhotoImage(self.img_fond)
+        self.canvas.create_image(largeur_plateau / 2, hauteur_plateau / 2, image=self.photo_fond)
 
-        self.pieces_list = []
-        self._thinking = False
-        self.update_board()
+        self.liste_pieces = []
+        self._en_reflexion = False
+        self.actualiser_plateau()
 
-    def get_x_from_col(self, col: int) -> float:
+    def obtenir_x_depuis_col(self, col: int) -> float:
         if col < 0 or col > 7:
             raise ValueError(col)
-        return board_width / 8 * col + board_width / 16
+        return largeur_plateau / 8 * col + largeur_plateau / 16
 
-    def get_y_from_row(self, row: int) -> float:
-        if row < 0 or row > 7:
-            raise ValueError(row)
-        return board_height / 8 * row + board_height / 16
+    def obtenir_y_depuis_ligne(self, ligne: int) -> float:
+        if ligne < 0 or ligne > 7:
+            raise ValueError(ligne)
+        return hauteur_plateau / 8 * ligne + hauteur_plateau / 16
 
-    def display_piece(self, piece, col: int, row: int) -> None:
-        self.pieces_list.append(
-            self.canvas.create_image(self.get_x_from_col(col), self.get_y_from_row(row), image=self.img_dict[piece])
+    def afficher_piece(self, piece, col: int, ligne: int) -> None:
+        self.liste_pieces.append(
+            self.canvas.create_image(self.obtenir_x_depuis_col(col), self.obtenir_y_depuis_ligne(ligne), image=self.dict_images[piece])
         )
 
-    def update_board(self):
-        for piece in self.pieces_list:
+    def actualiser_plateau(self):
+        for piece in self.liste_pieces:
             self.canvas.delete(piece)
-        self.pieces_list.clear()
+        self.liste_pieces.clear()
 
-        row = col = 0
+        ligne = col = 0
         for piece in self.board.board_fen():
             if '1' <= piece <= '8':
                 col += ord(piece) - ord('0')
             elif piece == '/':
                 col = 0
-                row += 1
+                ligne += 1
             else:
-                self.display_piece(piece, col, row)
+                self.afficher_piece(piece, col, ligne)
                 col += 1
 
         # ✅ root.after au lieu de sleep() → Tkinter reste réactif
-        self.root.after(DELAY_MS, self.jouer)
+        self.root.after(DELAI_MS, self.jouer)
 
-    def update_history_white(self, entry):
-        self.history_white.append(entry)
-        self.history_white_var.set(self.history_white)
+    def actualiser_historique_blanc(self, entree):
+        self.historique_blanc.append(entree)
+        self.var_historique_blanc.set(self.historique_blanc)
 
-    def update_history_black(self, entry):
-        self.history_black.append(entry)
-        self.history_black_var.set(self.history_black)
+    def actualiser_historique_noir(self, entree):
+        self.historique_noir.append(entree)
+        self.var_historique_noir.set(self.historique_noir)
 
     def jouer(self):
-        if self._thinking:
+        if self._en_reflexion:
             return
 
         if self.board.is_game_over():
@@ -111,37 +111,37 @@ class Chess_UI:
             else:
                 res = "Égalité !"
             self.canvas.create_text(
-                board_width // 2, board_height // 2,
+                largeur_plateau // 2, hauteur_plateau // 2,
                 text=f"Partie terminée : {res}",
                 font=("Arial", 24, "bold"), fill="red"
             )
             return
 
-        self._thinking = True
+        self._en_reflexion = True
 
-        def calculate():
+        def calculer():
             try:
                 if self.board.turn == WHITE:
-                    san = self.Joueur_Blanc.coup()
+                    san = self.joueur_blanc.coup()
                 else:
-                    san = self.Joueur_Noir.coup()
-                self.root.after(0, lambda: self._apply_move(san))
+                    san = self.joueur_noir.coup()
+                self.root.after(0, lambda: self._appliquer_coup(san))
             except Exception as e:
                 print(f"[UI] Erreur IA : {e}")
-                self._thinking = False
+                self._en_reflexion = False
 
-        threading.Thread(target=calculate, daemon=True).start()
+        threading.Thread(target=calculer, daemon=True).start()
 
-    def _apply_move(self, san: str):
+    def _appliquer_coup(self, san: str):
         try:
-            move = self.board.parse_san(san)
+            coup = self.board.parse_san(san)
             if self.board.turn == WHITE:
-                self.update_history_white(f"{self.board.fullmove_number}. {san}")
+                self.actualiser_historique_blanc(f"{self.board.fullmove_number}. {san}")
             else:
-                self.update_history_black(f"{self.board.fullmove_number}... {san}")
-            self.board.push(move)
+                self.actualiser_historique_noir(f"{self.board.fullmove_number}... {san}")
+            self.board.push(coup)
         except Exception as e:
             print(f"[UI] Coup invalide '{san}' : {e}")
         finally:
-            self._thinking = False
-            self.update_board()
+            self._en_reflexion = False
+            self.actualiser_plateau()

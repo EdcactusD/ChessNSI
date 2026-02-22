@@ -1,3 +1,3 @@
-from engine.engine import find_best_move
+from engine.engine import trouver_meilleur_coup
 
-__all__ = ["find_best_move"]
+__all__ = ["trouver_meilleur_coup"]

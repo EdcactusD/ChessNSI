@@ -1,45 +1,45 @@
 import chess
 import os
 
-from engine.opening_book import get_opening_move
-from engine.memory import get_memory_move, store_position
-from engine.search import minimax_root, set_move_history
+from engine.opening_book import obtenir_coup_ouverture
+from engine.memory import obtenir_coup_memoire, stocker_position
+from engine.search import minimax_racine, fixer_historique_coups
 
-_game_move_history = []
-
-
-def reset_game_history() -> None:
-    global _game_move_history
-    _game_move_history = []
+_historique_coups_jeu = []
 
 
-def find_best_move(board: chess.Board, depth: int = 4, training: bool = False):
-    global _game_move_history
+def reinitialiser_historique_jeu() -> None:
+    global _historique_coups_jeu
+    _historique_coups_jeu = []
+
+
+def trouver_meilleur_coup(board: chess.Board, profondeur: int = 4, entrainement: bool = False):
+    global _historique_coups_jeu
 
     if board.is_game_over():
         return None
     if not list(board.legal_moves):
         return None
 
-    # 1. Opening Book
-    ob_move = get_opening_move(board)
-    if ob_move:
-        _game_move_history.append(ob_move)
-        return ob_move
+    # 1. Livre des ouvertures
+    coup_ouverture = obtenir_coup_ouverture(board)
+    if coup_ouverture:
+        _historique_coups_jeu.append(coup_ouverture)
+        return coup_ouverture
 
     # 2. Mémoire
-    mem_move = get_memory_move(board)
-    if mem_move:
-        _game_move_history.append(mem_move)
-        return mem_move
+    coup_memoire = obtenir_coup_memoire(board)
+    if coup_memoire:
+        _historique_coups_jeu.append(coup_memoire)
+        return coup_memoire
 
     # 3. Minimax
-    set_move_history(_game_move_history)
-    use_quiescence = not training
-    best_move, score = minimax_root(board, depth, use_quiescence)
+    fixer_historique_coups(_historique_coups_jeu)
+    utiliser_quiesci = not entrainement
+    meilleur_coup, score = minimax_racine(board, profondeur, utiliser_quiesci)
 
-    if best_move:
-        _game_move_history.append(best_move)
-        store_position(board, best_move, depth, score)
+    if meilleur_coup:
+        _historique_coups_jeu.append(meilleur_coup)
+        stocker_position(board, meilleur_coup, profondeur, score)
 
-    return best_move
+    return meilleur_coup

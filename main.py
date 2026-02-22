@@ -1,15 +1,15 @@
 from chess import *
 from tkinter import Tk
-from canvas_tkinter import Chess_UI
-from ai_player import AIPlayer
+from canvas_tkinter import InterfaceEchecs
+from ai_player import JoueurIA
 
 board = Board()
 root = Tk()
 root.title("Echec")
 
-ai_blanc = AIPlayer(board, depth=4)
-ai_noir  = AIPlayer(board, depth=4)
+ia_blanc = JoueurIA(board, profondeur=4)
+ia_noir  = JoueurIA(board, profondeur=4)
 
-c = Chess_UI(root, board, ai_blanc, ai_noir)
+ui = InterfaceEchecs(root, board, ia_blanc, ia_noir)
 
 root.mainloop()
