@@ -86,8 +86,6 @@ class InterfaceEchecs:
             else:
                 self.afficher_piece(piece, col, ligne)
                 col += 1
-
-        # ✅ root.after au lieu de sleep() → Tkinter reste réactif
         self.root.after(DELAI_MS, self.jouer)
 
     def actualiser_historique_blanc(self, entree):

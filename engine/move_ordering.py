@@ -12,7 +12,7 @@ def noter_coup(board: chess.Board, coup: chess.Move) -> int:
         if victime and attaquant:
             score += 10 * VALEURS_PIECES.get(victime.piece_type, 0) - VALEURS_PIECES.get(attaquant.piece_type, 0)
         else:
-            score += 500  # en passant
+            score += 100  # en passant
     return score
 
 
