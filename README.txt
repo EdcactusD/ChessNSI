@@ -16,11 +16,11 @@ Pour changer la profondeur de réflexion, modifie dans main.py :
   ai_blanc = AIPlayer(board, depth=4)
   ai_noir  = AIPlayer(board, depth=4)
 
-  depth=2 → très rapide, niveau débutant
-  depth=3 → rapide, niveau intermédiaire
-  depth=4 → équilibré, niveau correct
-  depth=5 → lent (10-30s par coup), niveau fort
-  depth=6 → très lent, niveau avancé
+  depth=2 : très rapide ,débutant
+  depth=3 :  rapide, intermédiaire
+  depth=4 :  équilibré, correct
+  depth=5 :  lent, fort
+  depth=6 :  très lent , avancé
 
 
 ENTRAÎNEMENT (train.py)
