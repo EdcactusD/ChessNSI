@@ -13,8 +13,8 @@ LANCER LE JEU
 L'interface s'ouvre. Les deux IAs jouent automatiquement l'une contre l'autre.
 Pour changer la profondeur de réflexion, modifie dans main.py :
 
-  ai_blanc = AIPlayer(board, depth=4)
-  ai_noir  = AIPlayer(board, depth=4)
+ia_blanc = JoueurIA(board, profondeur=4)
+ia_noir  = JoueurIA(board, profondeur=4)
 
   depth=2 : très rapide ,débutant
   depth=3 :  rapide, intermédiaire
